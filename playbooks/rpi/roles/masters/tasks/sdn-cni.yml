@@ -1,0 +1,38 @@
+#- name: Install SDN and CNI plugin (WeaveNet)
+#  shell: >
+#    export kubever=$(sudo kubectl version | base64 | tr -d '\n') ;
+#    kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever" ;
+#  environment:
+#    KUBECONFIG: /etc/kubernetes/admin.conf
+
+# curl -sSL "https://github.com/coreos/flannel/blob/master/Documentation/kube-flannel.yml?raw=true" | sed "s/amd64/arm/g" | kubectl apply -f -
+- name: Download SDN and CNI plugin (Flannel)
+  get_url:
+    url: "https://github.com/coreos/flannel/blob/master/Documentation/kube-flannel.yml?raw=true"
+    dest: /etc/kube-flannel.yml
+
+- name: Replace all instances of 'amd64' for 'arm' in '/etc/kube-flannel.yml' (Flannel)
+  replace:
+    path: /etc/kube-flannel.yml
+    regexp: 'amd64'
+    replace: "arm"
+
+- name: Install SDN and CNI plugin (Flannel)
+  shell: >
+    kubectl apply -f /etc/kube-flannel.yml
+  register: flannel_result
+  changed_when: "'created' in flannel_result.stdout"
+  run_once: True
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+#- name: Install SDN and CNI plugin (Flannel)
+#  shell: >
+#    curl -sSL "https://github.com/coreos/flannel/blob/master/Documentation/kube-flannel.yml?raw=true" |
+#    sed "s/amd64/arm/g" |
+#    kubectl apply -f -
+#  register: flannel_result
+#  changed_when: "'created' in flannel_result.stdout"
+#  run_once: True
+#  environment:
+#    KUBECONFIG: /etc/kubernetes/admin.conf

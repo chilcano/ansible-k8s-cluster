@@ -1,0 +1,66 @@
+- name: Update deb/apt repositories cache and install dependencies
+  apt:
+    name: "{{ item }}"
+    update_cache: yes   ## equivalent of apt-get update
+    state: latest
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+
+- name: Add the Docker and K8s apt signing keys
+  apt_key:
+    url: '{{ item }}'
+    state: present
+  with_items:
+    - https://download.docker.com/linux/raspbian/gpg
+    - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add the Docker apt/deb repository
+  apt_repository:
+    repo: 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+    state: present
+    filename: 'docker-{{ ansible_distribution_release }}'
+    ##update_cache: yes   ## equivalent of apt-get update
+
+- name: Add the K8s apt/deb repository
+  apt_repository:
+    repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+    state: present
+    filename: kubernetes-xenial
+    update_cache: yes   ## equivalent of apt-get update (importante????)
+
+#- name: Remove previous installed Docker and K8s components
+#  apt:
+#    name: "{{ item }}"
+#    state: absent
+#  with_items:
+#    - docker-ce
+#    - kubectl
+#    - kubelet
+#    - kubeadm
+
+- name: Install fresh Docker and K8s components if not installed
+  apt:
+    name: "{{ item.dpkg }}"
+    state: present
+    allow_unauthenticated: yes
+  with_items:
+    - { dpkg : 'docker-ce={{ version_docker }}' }
+    - { dpkg : 'kubectl={{ version_kube }}-{{ version_kube_deb_min }}' }
+    - { dpkg : 'kubelet={{ version_kube }}-{{ version_kube_deb_min }}' }
+    - { dpkg : 'kubeadm={{ version_kube }}-{{ version_kube_deb_min }}' }
+
+- name: Ensure Docker users are added to the docker group
+  user:
+    name: "{{ item }}"
+    group: docker
+    append: yes
+  with_items: "{{ ansible_ssh_user }}"
+
+- name: Restart docker and kubelet
+  service:
+    name: '{{ item }}'
+    state: restarted
+  with_items:
+    - docker
+    - kubelet

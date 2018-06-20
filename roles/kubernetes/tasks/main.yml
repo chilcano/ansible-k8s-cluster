@@ -1,0 +1,22 @@
+- include_tasks: configure-ubuntu.yml
+  when: _target_distribution == 'ubuntu'
+
+- include_tasks: configure-rpi.yml
+  when: _target_distribution == 'rpi'
+
+- include_tasks: install-k8s.yml
+
+- include_tasks: kubeadm-init.yml
+  when: k8s_role == 'master'
+
+- include_tasks: kubectl.yml
+  when: k8s_role == 'master'
+
+- include_tasks: sdn-cni-weavenet.yml
+  when: k8s_role == 'master' and _sdn_cni == 'weave-net'
+
+- include_tasks: sdn-cni-flannel.yml
+  when: k8s_role == 'master' and _sdn_cni == 'flannel'
+
+- include_tasks: kubeadm-join.yml
+  #when: k8s_role == 'worker'

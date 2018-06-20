@@ -1,0 +1,53 @@
+[k8s_masters]
+pik8s01    ansible_ssh_host=192.168.0.18
+
+[k8s_workers]
+pik8s02    ansible_ssh_host=192.168.0.19
+
+[all:vars]
+ansible_ssh_user=pi
+version_kube=1.10.3
+#version_kube=1.10.2
+#version_kube=1.10.0
+##version_kube=1.9.0  ## intermitent connection, see it in kubectl get nodes
+version_kube_deb_min='00'
+version_docker=18.05.0~ce~3-0~raspbian
+
+
+## k8s master used to announce
+_k8s_master_hostname=k8s-ubu-1
+
+
+########
+firewall_allowed_tcp_ports:
+  - 22
+  - 80
+  - 443
+  # For NFS.
+  - 111
+  - 2049
+  # For Kubernetes.
+  - 6443
+  - 2379
+  - 2380
+  - 10250
+  - 10251
+  - 10252
+  - 10255
+  # TODO: Ports 30000-32767 for NodePort services?
+  # For Weave.
+  - 6783
+  - 6784
+  # For Flannel.
+  - 8285
+  - 8472
+firewall_allowed_udp_ports:
+  # For NFS.
+  - 111
+  - 2049
+  # For Weave.
+  - 6783
+  - 6784
+  # For Flannel.
+  - 8285
+  - 8472

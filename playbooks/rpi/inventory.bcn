@@ -1,0 +1,19 @@
+[k8s_masters]
+k8s-pi-31    ansible_ssh_host=192.168.1.31
+
+[k8s_workers]
+k8s-pi-47    ansible_ssh_host=192.168.1.47
+
+[all:vars]
+ansible_ssh_user=pi
+version_kube=1.10.4
+#version_kube=1.10.3
+#version_kube=1.10.2
+#version_kube=1.10.0
+##version_kube=1.9.0  ## intermitent connection, see it in kubectl get nodes
+version_kube_deb_min='00'
+version_docker=18.05.0~ce~3-0~raspbian
+##version_docker=17.12.1~ce-0~raspbian
+
+## k8s master used to announce
+k8s_master_hostname=k8s-pi-31

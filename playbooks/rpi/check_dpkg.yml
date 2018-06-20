@@ -1,0 +1,71 @@
+---
+- name: Check K8s cluster
+  hosts: all
+  become: True
+  gather_facts: True
+  tasks:
+
+  - name: Install dependencies
+    apt:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+
+  - name: Add the Docker and K8s apt signing keys
+    apt_key:
+      url: '{{ item }}'
+      state: present
+    with_items:
+      - https://download.docker.com/linux/raspbian/gpg
+      - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+  - name: Add the Docker apt/deb repository
+    apt_repository:
+      repo: 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+      state: present
+      filename: 'docker-{{ ansible_distribution_release }}'
+      update_cache: yes   ## equivalent of apt-get update
+
+  - name: Add the K8s apt/deb repository
+    apt_repository:
+      repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+      state: present
+      filename: kubernetes-xenial
+      #update_cache: yes   ## equivalent of apt-get update
+
+  - name: Check if 'docker' is installed
+    shell: dpkg-query -l 'docker-ce'
+    register: result_docker
+
+  - name: Check if 'kubectl' is installed
+    shell: dpkg-query -l 'kubectl'
+    register: result_kubelet
+
+  - name: Check if 'kubelet' is installed
+    shell: dpkg-query -l 'kubelet'
+    register: result_kubelet
+
+  - name: Check if 'kubeadm' is installed
+    shell: dpkg-query -l 'kubeadm'
+    register: result_kubeadm
+
+  - debug:
+      var: item
+    with_items:
+      - '{{result_docker.rc}}'
+      - '{{result_kubelet.rc}}'
+      - '{{result_kubelet.rc}}'
+      - '{{result_kubeadm.rc}}'
+
+  - name: Install fresh Docker and K8s components
+    apt:
+      name: "{{ item.dpkg }}"
+      state: present
+      allow_unauthenticated: yes
+    with_items:
+      - { dpkg : 'docker-ce' }
+      - { dpkg : 'kubectl={{ version_kube }}-{{ version_kube_deb_min }}' }
+      - { dpkg : 'kubelet={{ version_kube }}-{{ version_kube_deb_min }}' }
+      - { dpkg : 'kubeadm={{ version_kube }}-{{ version_kube_deb_min }}' }

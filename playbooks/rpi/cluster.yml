@@ -1,0 +1,22 @@
+---
+- name: Prepare all Raspberry Pis before starting installation of K8s nodes
+  hosts: all
+  become: True
+  gather_facts: True
+  roles:
+    - geerlingguy.security
+    - common
+
+- name: Setup K8s masters
+  hosts: k8s_masters
+  become: True
+  gather_facts: False
+  roles:
+    - masters
+
+- name: Setup K8s workers
+  hosts: all
+  become: True
+  gather_facts: False
+  roles:
+    - workers

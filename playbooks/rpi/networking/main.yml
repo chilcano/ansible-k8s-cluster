@@ -1,0 +1,44 @@
+---
+- hosts: pis
+  become: yes
+
+  tasks:
+    - name: Set variables based on eth0.
+      set_fact:
+        dramble_hostname: "{{ inventory_hostname_short }}"
+        dramble_ip_address: "{{ eth0_ip_new }}"
+
+    - name: Set up networking-related files.
+      template:
+        src: "templates/{{ item.template }}"
+        dest: "{{ item.dest }}"
+        mode: 0644
+      with_items:
+        - { template: hostname.j2, dest: /etc/hostname, rpi_dist_rel: 'stretch, wheezy, jessie' }
+        - { template: hosts.j2, dest: /etc/hosts, rpi_dist_rel: 'stretch, wheezy, jessie' }
+        - { template: interfaces.j2, dest: /etc/network/interfaces, rpi_dist_rel: 'wheezy, jessie' }
+        - { template: resolv.conf.j2, dest: /etc/resolv.conf, rpi_dist_rel: 'wheezy, jessie' }
+        - { template: dhcpcd.conf.j2, dest: /etc/dhcpcd.conf, rpi_dist_rel: 'stretch, wheezy, jessie' }
+      when: ansible_distribution_release | lower in item.rpi_dist_rel | lower
+      notify:
+        - update hostname
+        - delete dhcp leases
+        - reboot
+
+  handlers:
+    - name: update hostname
+      command: "hostname {{ dramble_hostname }}"
+
+    - name: delete dhcp leases
+      file:
+        path: /var/lib/dhcp/dhclient.leases
+        state: absent
+      with_items:
+        - /var/lib/dhcp/dhclient.leases
+        - /var/lib/dhcpcd5/dhcpcd-eth0.lease
+
+    - name: reboot
+      shell: sleep 2 && reboot
+      async: 1
+      poll: 0
+      ignore_errors: True

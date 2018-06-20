@@ -1,0 +1,61 @@
+---
+- name: Enabling 'cgroup' options at boot
+  copy:
+    src: cmdline.txt
+    dest: /boot/cmdline.txt
+  register: cmdline
+  tags:
+    - boot
+
+- name: Reboot
+  shell: sleep 2 && shutdown -r now "Ansible Reboot for /boot/cmdline.txt Change"
+  async: 1
+  poll: 0
+  ignore_errors: True
+  when: cmdline is changed
+  tags:
+    - boot
+    - shutdown
+
+- name: Wait for Reboot
+  local_action: wait_for
+  args:
+    host: "{{ ansible_ssh_host }}"
+    port: 22
+    delay: 15
+    timeout: 90
+  become: False
+  when: cmdline is changed
+  tags:
+    - boot
+    - shutdown
+
+- name: Disable Swap
+  shell: >
+    dphys-swapfile swapoff &&
+    dphys-swapfile uninstall &&
+    update-rc.d dphys-swapfile remove
+
+#- name: Pass bridged IPv4 traffic to iptables' chains
+#  sysctl:
+#    name: net.bridge.bridge-nf-call-iptables
+#    value: 1
+#    state: present
+
+
+- name: Setup 'net.ipv4.ip_forward'
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+
+- name: Setup Docker and Kubelet systemd services
+  service:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+  with_items:
+    - docker
+    - kubelet

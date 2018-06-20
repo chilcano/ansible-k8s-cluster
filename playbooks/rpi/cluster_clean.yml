@@ -1,0 +1,97 @@
+---
+- name: Clean K8s cluster - Raspberry Pi
+  hosts: all
+  become: True
+  gather_facts: True
+  tasks:
+
+  - name: Check that '/usr/bin/kubeadm' exists
+    stat:
+      path: /usr/bin/kubeadm
+    register: kubeadm_stat_result
+
+  - name: Reset K8s cluster
+    shell: kubeadm reset
+    register: kubeadm_init
+    when: kubeadm_stat_result.stat.exists == True
+
+  - name: Stop the Docker and Kubelet systemctl services
+    service:
+      name: '{{ item }}'
+      state: stopped
+      enabled: no
+    register: cmd_result
+    failed_when: "cmd_result is failed and ('find' not in cmd_result.msg and 'found' not in cmd_result.msg)"
+    with_items:
+      - kubelet
+      - docker
+
+# ls -la  /etc/apt/sources.list.d/
+# sudo rm -rf /etc/apt/sources.list.d/docker-stretch.list
+# sudo rm -rf /etc/apt/sources.list.d/kubernetes-xenial.list
+  - name: Remove Docker and K8s apt/deb repositories
+    apt_repository:
+      repo: '{{ item }}'
+      state: absent
+    with_items:
+      - 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+      - 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+
+  - name: Remove Docker and K8s components
+    apt:
+      name: '{{ item }}'
+      state: absent
+      #purge: yes
+    with_items:
+      - kubeadm
+      - kubelet
+      - kubectl
+      - docker-ce
+      - docker.io
+      - kubernetes-cni
+
+## sudo kubeadm reset
+## sudo apt-get remove -yq kubeadm kubectl kubelet kubernetes-cni && sudo apt-get autoremove -yq && sudo apt-get autoclean -yq
+
+  - name: Remove dependencies that are no longer required
+    apt:
+      autoremove: yes
+
+  - name: Remove useless packages from the cache
+    apt:
+      autoclean: yes
+
+  - name: Remove not used config files
+    file:
+      path: '{{ item }}'
+      state: absent
+    with_items:
+      - '/var/lib/kubelet/'
+      - '/etc/cni/net.d/'
+      - '/var/lib/docker/'
+      - '/var/lib/dockershim/'
+      - '/var/run/kubernetes'
+      - '/etc/docker/'
+      - '/var/run/docker/'
+      - '/var/run/docker.sock'
+      - '/etc/systemd/system/docker.service'
+      - '/etc/systemd/system/docker.socket'
+      - '/etc/kubernetes/'
+      - '/etc/kubectl/'
+      - '/etc/kubeadm-join.sh'
+      - '/var/lib/etcd/'
+      - '/etc/systemd/system/kubelet.service'
+      - '/etc/systemd/system/kubelet.service.d/'
+      - '/etc/systemd/system/multi-user.target.wants/docker.service'
+      - '/etc/systemd/system/multi-user.target.wants/kubelet.service'
+      - '/etc/systemd/system/sockets.target.wants/docker.socket'
+      - '/etc/systemd/system/sockets.target.wants/kubelet.socket'
+      - '/etc/init.d/docker'
+      - '/home/{{ ansible_ssh_user }}/.kube/'
+    ignore_errors: True
+
+  - name: Reboot
+    shell: sleep 2 && reboot
+    async: 1
+    poll: 0
+    ignore_errors: True

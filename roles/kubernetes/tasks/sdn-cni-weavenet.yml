@@ -1,0 +1,26 @@
+- name: Pass bridged IPv4/IPv6 traffic to iptables' chains
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Install SDN and CNI plugin (WeaveNet)
+  shell: >
+    export kubever=$(sudo kubectl version | base64 | tr -d '\n') ;
+    kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever" ;
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Waiting for getting up the SDN-CNI
+  shell: >
+    export KUBECONFIG=/etc/kubernetes/admin.conf ;
+    kubectl get pods -n kube-system -l name=weave-net
+  register: result
+  until: result.stdout.find("Running") != -1
+  retries: 100
+  delay: 10

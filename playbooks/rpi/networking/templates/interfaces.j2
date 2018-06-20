@@ -1,0 +1,15 @@
+auto lo
+
+iface lo inet loopback
+
+iface eth0 inet manual
+
+allow-hotplug wlan0
+iface wlan0 inet manual
+wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+
+iface default inet static
+  address {{ dramble_ip_address }}/24
+  netmask 255.255.255.0
+  gateway {{ _default_gateway_eth0 }}
+  dns-nameservers {{ _dns_nameservers.split(',') | join(' ') }}

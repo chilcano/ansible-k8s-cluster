@@ -1,0 +1,54 @@
+domain   = 'k8s'    ## used to identify private network for k8s cluster and the cluster domain name
+
+# use two digits id below, please
+nodescluster = [
+  { :role => 'master', :hostname => 'k8s-ubu-1', :ip => '10.0.0.11', :id => '11' },
+  { :role => 'worker', :hostname => 'k8s-ubu-2', :ip => '10.0.0.12', :id => '12' },
+  { :role => 'worker', :hostname => 'k8s-ubu-3', :ip => '10.0.0.13', :id => '13' },
+]
+
+memory = 2048   ## MB
+cpus = 1        ## virtual cpus
+
+## propagate 'hosts' file and ssh key files
+$script = <<SCRIPT
+sudo mv hosts /etc/hosts
+chmod 0600 /home/vagrant/.ssh/id_rsa
+usermod -a -G vagrant ubuntu
+cp -Rvf /home/vagrant/.ssh /home/ubuntu
+chown -Rvf ubuntu /home/ubuntu
+apt-get -y update
+apt-get -y install python-minimal python-apt
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  nodescluster.each do |node|
+    config.vm.define node[:hostname] do |nodeconfig|
+      nodeconfig.vm.box = "ubuntu/xenial64"
+      nodeconfig.vm.hostname = node[:hostname]
+      if node[:role] == 'master'
+        nodeconfig.vm.network "forwarded_port", guest: 6443, host: 6443         ## open 6443 port for K8s API Server
+        nodeconfig.vm.network "forwarded_port", guest: 30002, host: 30002       ## open 30002 NodePort for Weave Scope
+        ## generally LoadBalancer Svc, should open the ports automatically
+        ## we have to deploy a NodePort Svc in order to open standard ports: http/30080 and https/30080
+        nodeconfig.vm.network "forwarded_port", guest: 30080, host: 30080       ## open 30080 NodePort for Istio Ingress on HTTP
+        nodeconfig.vm.network "forwarded_port", guest: 30080, host: 30443       ## open 30443 NodePort for Istio Ingress on HTTPS
+      end
+      nodeconfig.vm.network :private_network, ip: node[:ip], virtualbox__intnet: domain   ## Adapter 2 Private Network for Kubernetes
+      nodeconfig.vm.provider :virtualbox do |vb|
+        #vb.name = node[:hostname] + "." + domain
+        vb.name = node[:hostname]
+        vb.memory = memory
+        vb.cpus = cpus
+        vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+        vb.customize ['modifyvm', :id, '--natdnsproxy1', 'on']
+        vb.customize ['modifyvm', :id, '--macaddress1', "5CA1AB1E00" + node[:id]]   ## Adapter 1 NAT - set a MAC Address
+        vb.customize ['modifyvm', :id, '--natnet1', "192.168/16"]                   ## Adapter 1 NAT - 192.168.0.15
+      end
+      nodeconfig.vm.provision "file", source: "hosts", destination: "hosts"         ## copy 'hosts' file to '/vagrant/hosts' in VM
+      nodeconfig.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/home/vagrant/.ssh/id_rsa"
+      nodeconfig.vm.provision "shell", inline: $script
+    end
+  end
+end

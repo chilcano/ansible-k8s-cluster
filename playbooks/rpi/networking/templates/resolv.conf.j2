@@ -1,0 +1,6 @@
+domain {{ _domain }}
+options timeout:1 attempts:1
+
+{% for nameserver in _dns_nameservers.split(',') %}
+nameserver {{ nameserver }}
+{% endfor %}

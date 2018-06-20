@@ -1,0 +1,25 @@
+- name: kubectl | Update '.bash_profile' with 'KUBECONFIG=/etc/kubernetes/admin.conf'
+  lineinfile:
+    path: /root/.bash_profile
+    line: 'export KUBECONFIG=/etc/kubernetes/admin.conf'
+    create: yes
+
+- name: Create '~/.kube' dir
+  file:
+    path: '/home/{{ ansible_ssh_user }}/.kube/'
+    state: directory
+    owner: '{{ ansible_ssh_user }}'
+
+- name: Symlink 'admin.conf' to '~/.kube/config'
+  file:
+    src: /etc/kubernetes/admin.conf
+    dest: '/home/{{ ansible_ssh_user }}/.kube/config'
+    #remote_src: yes
+    state: link
+#  when: kubeadm_init
+
+- name: Set owner for '~/.kube/config'
+  file:
+    name: '/home/{{ ansible_ssh_user }}/.kube/config'
+    state: file
+    owner: '{{ ansible_ssh_user }}'

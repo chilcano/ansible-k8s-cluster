@@ -1,0 +1,14 @@
+.DS_Store
+.vagrant
+*.retry
+*.deb
+#*.bcn
+#*.man
+#*.bar
+*.log
+*.config
+*.bak
+#kvm/
+#rpi/
+#virtualbox/
+#vsphere/

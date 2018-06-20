@@ -1,0 +1,57 @@
+- name: configure rpi | Enabling 'cgroup' options at boot
+  copy:
+    src: cmdline.txt
+    dest: /boot/cmdline.txt
+  register: cmdline
+  tags:
+    - boot
+
+- name: configure rpi | Reboot
+  shell: sleep 2 && shutdown -r now "Ansible Reboot for /boot/cmdline.txt Change"
+  async: 1
+  poll: 0
+  ignore_errors: True
+  when: cmdline is changed
+  tags:
+    - boot
+    - shutdown
+
+- name: configure rpi | Wait for Reboot
+  local_action: wait_for
+  args:
+    host: "{{ ansible_ssh_host }}"
+    port: 22
+    delay: 15
+    timeout: 90
+  become: False
+  when: cmdline is changed
+  tags:
+    - boot
+    - shutdown
+
+- name: configure rpi | Disable Swap
+  shell: >
+    dphys-swapfile swapoff &&
+    dphys-swapfile uninstall &&
+    update-rc.d dphys-swapfile remove
+
+#- name: Pass bridged IPv4 traffic to iptables' chains
+#  sysctl:
+#    name: net.bridge.bridge-nf-call-iptables
+#    value: 1
+#    state: present
+
+
+- name: configure rpi | Setup 'net.ipv4.ip_forward'
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+
+#- name: configure rpi | Setup Kubelet systemd service
+#  service:
+#    name: kubelet
+#    state: started
+#    enabled: yes

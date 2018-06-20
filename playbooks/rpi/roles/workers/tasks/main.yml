@@ -1,0 +1,30 @@
+- name: Pass and reload bridged IPv4/IPv6 traffic to iptables' chains
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Read '/etc/kubeadm-join.sh' file from remote K8s master
+  shell: "cat /etc/kubeadm-join.sh"
+  register: cat_kubeadm_join
+  when: inventory_hostname == k8s_master_hostname
+
+- name: Set 'kubeadm_join_fact' from remote K8s master
+  set_fact:
+    kubeadm_join_fact: "{{ cat_kubeadm_join.stdout }}"
+  when: inventory_hostname == k8s_master_hostname
+
+- name: Save '/etc/kubeadm-join.sh' and join worker to K8s cluster
+  shell: >
+     systemctl stop kubelet ;
+     kubeadm reset ;
+     echo "{{ hostvars[k8s_master_hostname].kubeadm_join_fact }}" > /etc/kubeadm-join.sh ;
+     bash /etc/kubeadm-join.sh
+  args:
+    creates: /etc/kubeadm-join.sh
+  when: inventory_hostname != k8s_master_hostname

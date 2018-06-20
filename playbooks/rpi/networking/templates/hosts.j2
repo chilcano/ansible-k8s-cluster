@@ -1,0 +1,10 @@
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+
+127.0.1.1 {{ dramble_hostname }}
+
+{% for x in groups['all'] %}
+{{ hostvars[x]['ansible_ssh_host'] }} {{ x }}
+{% endfor %}

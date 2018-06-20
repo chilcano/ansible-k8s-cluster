@@ -1,0 +1,56 @@
+---
+- name: Install k8s | Install dependencies and update cache
+  apt:
+    name: '{{ item }}'
+    #update_cache: yes   ## equivalent of apt-get update
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+
+- name: Install k8s | Add Kubernetes apt/deb key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  ignore_errors: True
+
+- name: Install k8s | Add the Kubernetes apt/deb repository
+  apt_repository:
+    repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+    state: present
+    filename: kubernetes-xenial
+    update_cache: yes
+
+- name: Install k8s | Install K8s packages (kubelet, kubeadm, kubectl, kubernetes-cni) and ntp
+  apt:
+    name: '{{ item }}'
+    state: present
+    ##allow_unauthenticated: yes
+  notify: restart kubelet
+  with_items:
+    - kubelet={{ _k8s_version }}-{{ _k8s_version_deb_min }}
+    - kubeadm={{ _k8s_version }}-{{ _k8s_version_deb_min }}
+    - kubectl={{ _k8s_version }}-{{ _k8s_version_deb_min }}
+    - kubernetes-cni={{ _kube_cni_version }}
+    - ntp
+
+## kubernetes-cni=0.6.0-00
+
+#- name: Install k8s | Setup 'net.ipv4.ip_forward'
+#  sysctl:
+#    name: '{{ item }}'
+#    value: 1
+#    state: present
+#    reload: yes
+#    sysctl_set: yes
+#  with_items:
+#    - net.ipv4.ip_forward
+
+- name: Install k8s | Ensure Kubelet and NTP systemd services are started and enabled at boot
+  service:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+  with_items:
+    - ntp
+    - kubelet

@@ -1,0 +1,8 @@
+---
+- name: K8s Cluster - VirtualBox VMs
+  hosts: kubernetes_cluster
+  become: True
+
+  roles:
+    - role: '../../roles/docker'
+    - role: '../../roles/kubernetes'

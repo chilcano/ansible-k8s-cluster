@@ -1,0 +1,9 @@
+---
+- name: K8s Cluster - Raspberry Pi
+  hosts: kubernetes_cluster
+  become: True
+  gather_facts: True
+
+  roles:
+    - role: '../../roles/docker'
+    - role: '../../roles/kubernetes'
