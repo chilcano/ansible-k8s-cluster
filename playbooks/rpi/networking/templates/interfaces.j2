@@ -9,7 +9,7 @@ iface wlan0 inet manual
 wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
 
 iface default inet static
-  address {{ dramble_ip_address }}/24
+  address {{ eth0_ip_new }}/24
   netmask 255.255.255.0
-  gateway {{ _default_gateway_eth0 }}
-  dns-nameservers {{ _dns_nameservers.split(',') | join(' ') }}
+  gateway {{ rpi_nic_gateway.eth0 }}
+  dns-nameservers {{ rpi_nameservers.split(',') | join(' ') }}

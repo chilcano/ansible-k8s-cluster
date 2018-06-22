@@ -1,11 +1,53 @@
+# Creating a Kubernetes Cluster on Raspberry Pi 3b+
 
+## 1. Preparing the Raspberry Pis
 
+Install Raspbian and enbale SSH:
+
+```sh
 $ touch /Volumes/boot/ssh
-$ ansible -m ping all -k
+```
 
-$ cd rak8s/playbooks
-$ ansible-playbook -i inventory config_networking.yml -k
-$ ansible pis -i inventory -a "shutdown -r now" -b -k
+Now, we have to configure the networking for all Raspberry Pis.
+- Setup the Networking (eth0 and wlan0): dhcp, static, set IP, etc.
+- Setup the hostname
+- Update the hosts file
+
+And we are going to use separate Playbooks to do that.
+
+```sh
+$ git clone https://github.com/chilcano/ansible-k8s-cluster.git
+$ cd ansible-k8s-cluster/playbooks/rpi/
+```
+
+If you have only 1 RPi, then just connect to your computer.
+
+```sh
+// ssh to your rpi
+$ ssh pi@raspberrypi.local
+
+// get wireless networks available
+$ sudo iwlist wlan0 scan
+
+// update the inventory in YAML format
+$ cd networking/
+$ vi inventory.yml
+
+// check
+$ ansible -i inventory.yml -m ping all -k
+
+// config networking
+$ ansible-playbook -i inventory.yml main.yml -k
+```
+
+Reference:
+- https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
+- https://raspberrypi.stackexchange.com/questions/37920/how-do-i-set-up-networking-wifi-static-ip-address/37921#37921
+
+
+
+
+
 
 
 // rpi check:

@@ -1,0 +1,18 @@
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+country={{ rpi_wpa_supplicant.wlan0.country }}
+{# ------- Setup wpa suplicant in wlan0 ------- #}
+{% if rpi_nic_static.wlan0 %}
+{# by default - set static IP #}
+{% else %}
+{# AP assigns dynamic IP      #}
+network={
+  ssid="{{ rpi_wpa_supplicant.wlan0.ssid }}"
+  {% if rpi_wpa_supplicant.wlan0.psk is defined and rpi_wpa_supplicant.wlan0.psk != "" %}
+  psk="{{ rpi_wpa_supplicant.wlan0.psk }}"
+  {% else %}
+  key_mgmt=NONE
+  {% endif %}
+}
+{% endif %}

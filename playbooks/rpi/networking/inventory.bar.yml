@@ -1,0 +1,23 @@
+pis:
+  hosts:
+    rpi1:
+      ## default ip (dhcp doesnt exist)
+      #ansible_ssh_host: "169.254.144.107"
+      ansible_ssh_host: "20.20.20.21"
+      eth0_ip_new: "20.20.20.21"
+  vars:
+    ansible_ssh_user: pi
+    rpi_nameservers: "8.8.8.8,8.8.4.4"
+    rpi_domain: "k8s.local"
+    rpi_nic_static:
+      eth0: true
+      wlan0: false
+    rpi_nic_gateway:
+      eth0: "20.20.20.1"
+      wlan0: "192.168.1.1"
+    rpi_wpa_supplicant:
+      wlan0:
+        ssid: "your-ssid"
+        psk: "your-psk"
+        country: "GB"
+        #country: "ES"

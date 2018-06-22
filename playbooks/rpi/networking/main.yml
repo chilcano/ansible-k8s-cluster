@@ -3,11 +3,6 @@
   become: yes
 
   tasks:
-    - name: Set variables based on eth0.
-      set_fact:
-        dramble_hostname: "{{ inventory_hostname_short }}"
-        dramble_ip_address: "{{ eth0_ip_new }}"
-
     - name: Set up networking-related files.
       template:
         src: "templates/{{ item.template }}"
@@ -17,17 +12,28 @@
         - { template: hostname.j2, dest: /etc/hostname, rpi_dist_rel: 'stretch, wheezy, jessie' }
         - { template: hosts.j2, dest: /etc/hosts, rpi_dist_rel: 'stretch, wheezy, jessie' }
         - { template: interfaces.j2, dest: /etc/network/interfaces, rpi_dist_rel: 'wheezy, jessie' }
+        - { template: interfaces_stretch.j2, dest: /etc/network/interfaces, rpi_dist_rel: 'stretch' }
         - { template: resolv.conf.j2, dest: /etc/resolv.conf, rpi_dist_rel: 'wheezy, jessie' }
         - { template: dhcpcd.conf.j2, dest: /etc/dhcpcd.conf, rpi_dist_rel: 'stretch, wheezy, jessie' }
       when: ansible_distribution_release | lower in item.rpi_dist_rel | lower
       notify:
         - update hostname
         - delete dhcp leases
-        - reboot
+        - restart eth0
+
+    - name: Set up wireless-related files.
+      template:
+        src: "templates/wpa_supplicant.conf.j2"
+        dest: "/etc/wpa_supplicant/wpa_supplicant.conf"
+        mode: 0644
+      when: rpi_nic_static.wlan0 is defined
+      notify:
+        - restart wlan0
+        #- reboot
 
   handlers:
     - name: update hostname
-      command: "hostname {{ dramble_hostname }}"
+      command: "hostname {{ inventory_hostname_short }}"
 
     - name: delete dhcp leases
       file:
@@ -42,3 +48,9 @@
       async: 1
       poll: 0
       ignore_errors: True
+
+    - name: restart eth0
+      shell: ifconfig eth0 down && ifconfig eth0 up
+
+    - name: restart wlan0
+      shell: ifconfig wlan0 down && ifconfig wlan0 up && wpa_cli -i wlan0 reconfigure
