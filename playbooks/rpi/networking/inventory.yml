@@ -1,7 +1,7 @@
 pis:
   hosts:
     rpi1:
-      ## default ip (dhcp doesnt exist)
+      ## default ip when dhcp doesnt exist
       #ansible_ssh_host: "169.254.144.107"
       ansible_ssh_host: "20.20.20.21"
       eth0_ip_new: "20.20.20.21"

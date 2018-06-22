@@ -1,9 +1,0 @@
-[pis]
-k8s-pi-31    ansible_ssh_host=192.168.1.31  eth0_ip_new=192.168.1.31
-k8s-pi-47    ansible_ssh_host=192.168.1.47  eth0_ip_new=192.168.1.47
-
-[pis:vars]
-ansible_ssh_user=pi
-_dns_nameservers="8.8.8.8,8.8.4.4"
-_domain="ayllu.local"
-_default_gateway_eth0="192.168.1.1"
