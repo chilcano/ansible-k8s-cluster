@@ -1,0 +1,33 @@
+## https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository
+## For Raspbian, installing using the repository is not yet supported. You must instead use the convenience script
+##
+## this script installs latest version of docker-ce available in edge repo
+## in yum/rpm distro, you have to start the service manually
+##
+
+
+- name: Remove Docker APT repo
+  apt_repository:
+    repo: '{{ item }}'
+    state: absent
+  with_items:
+    - 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+  ignore_errors: true
+
+- name: Remove previous Docker components
+  apt:
+    name: '{{ item }}'
+    state: absent
+    purge: yes
+  with_items:
+    - docker-ce
+    - docker.io
+
+- name: Download Docker install convenience script
+  get_url:
+    url: https://get.docker.com/
+    dest: /tmp/get-docker.sh
+    mode: 0775
+
+- name: Run Docker install convenience script
+  command: /tmp/get-docker.sh

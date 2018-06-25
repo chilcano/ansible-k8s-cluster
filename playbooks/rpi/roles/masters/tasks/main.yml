@@ -1,3 +1,0 @@
-- include_tasks: kubeadm-init.yml
-- include_tasks: kubectl.yml
-- include_tasks: sdn-cni.yml

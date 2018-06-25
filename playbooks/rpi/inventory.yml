@@ -1,0 +1,32 @@
+kubernetes_cluster:
+  hosts:
+    rpi1:
+      ansible_ssh_host: "20.20.20.21"
+      eth0_ip_new: "20.20.20.21"
+      k8s_role: master
+#    rpi2:
+#      ansible_ssh_host: "20.20.20.22"
+#      eth0_ip_new: "20.20.20.22"
+#      k8s_role: worker
+  vars:
+    ansible_ssh_user: pi
+    _k8s_version: 1.10.0
+    #_k8s_version: 1.10.2
+    #_k8s_version: 1.10.3
+    #_k8s_version: 1.10.4
+    _k8s_version_deb_min: "00"
+    _k8s_master_hostname: rpi1
+    #_docker_version=1.10.3-0ubuntu6  ?
+    #_docker_version=1.13.1-0ubuntu1~16.04.2  ?
+    #_docker_version=18.03.0~ce-0~ubuntu
+    #_docker_version=18.03.0~ce-0~debian
+    _docker_version: 18.05.0~ce~3-0~raspbian
+    _target_distribution: raspbian
+    #_target_distribution: debian
+    #_target_distribution: ubuntu
+    ##_sdn_cni: flannel
+    _sdn_cni: weave-net
+    ##_docker_installation_method: deb_repo
+    _docker_installation_method: convenience
+    _kube_cni_version: 0.6.0-00
+    #_kube_cni_version: 0.5.1-00

@@ -46,29 +46,30 @@ Reference:
 
 
 
+// issues with update_cache=true
 
 
 
-
-// rpi check:
+// rpi dhcp check:
 
 $ cat /etc/dhcpcd.conf | egrep -v "^\s*(#|$)"
 
 
-
-$ ansible-playbook cluster.yml -k
-
 $ lsb_release -cs
 stretch
 
-// available packages
+// available packages (docker-ce is latest, no docker.io or docker-engine or docker)
+$ apt-cache policy docker-ce
+$ apt-cache madison docker-ce
+$ apt-cache madison docker.io     (older!!!!)
+
 $ apt-cache madison kubeadm
 $ apt-cache madison kubernetes-cni
-$ apt-cache madison docker-ce
 
 // installed packages
 $ dpkg -l | grep kubeadm
 $ dpkg -l | grep docker-ce
+
 
 // install
 $ sudo apt-get install docker-ce=18.05.0~ce~3-0~raspbian -yq

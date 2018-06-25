@@ -29,19 +29,20 @@
 # ls -la  /etc/apt/sources.list.d/
 # sudo rm -rf /etc/apt/sources.list.d/docker-stretch.list
 # sudo rm -rf /etc/apt/sources.list.d/kubernetes-xenial.list
-  - name: Remove Docker and K8s apt/deb repositories
+  - name: Remove Docker and K8s APT repos
     apt_repository:
       repo: '{{ item }}'
       state: absent
     with_items:
       - 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
       - 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+    ignore_errors: true
 
   - name: Remove Docker and K8s components
     apt:
       name: '{{ item }}'
       state: absent
-      #purge: yes
+      purge: yes
     with_items:
       - kubeadm
       - kubelet

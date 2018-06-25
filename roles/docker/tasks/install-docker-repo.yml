@@ -1,0 +1,84 @@
+- name: Apt-get update
+  apt:
+    update_cache=yes
+    autoclean=yes
+    autoremove=yes
+    cache_valid_time=86400
+
+- name: Apt-get upgrade
+  apt:
+    upgrade=full
+
+- name: Install dependencies
+  apt:
+    name: '{{ item }}'
+    ##update_cache: yes   ## equivalent of apt-get update
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    ##- gnupg2
+    - software-properties-common
+
+## $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+## $ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -     (for debian and raspbian)
+- name: Add Docker APT key for Debian or Raspbian
+  apt_key:
+    #url: https://download.docker.com/linux/raspbian/gpg
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+  ignore_errors: True
+  when: _target_distribution == 'raspbian' or _target_distribution == 'debian'
+
+- name: Add Docker APT key for Ubuntu
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  ignore_errors: True
+  when: _target_distribution == 'ubuntu'
+
+- name: Add the Docker APT repo for Raspbian
+  apt_repository:
+    # $ echo "deb [arch=armhf] https://download.docker.com/linux/raspbian stretch stable edge" > /etc/apt/sources.list.d/docker.list
+    repo: 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+    state: present
+    filename: 'docker-{{ ansible_distribution_release }}'
+  when: _target_distribution == 'raspbian'
+
+- name: Add the Docker APT repo for Debian
+  apt_repository:
+    repo: 'deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable edge'
+    state: present
+    filename: 'docker-{{ ansible_distribution_release }}'
+  when: _target_distribution == 'debian'
+
+- name: Add the Docker APT repo for Ubuntu
+  apt_repository:
+    repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable edge'
+    state: present
+    filename: 'docker-{{ ansible_distribution_release }}'
+  when: _target_distribution == 'ubuntu'
+
+- name: Apt-get update again
+  apt:
+    update_cache=yes
+    autoclean=yes
+    autoremove=yes
+    cache_valid_time=86400
+
+- name: Install Docker for Ubuntu, Debian or Raspbian
+  apt:
+    name: 'docker-ce={{ _docker_version }}'
+    state: present
+    ##allow_unauthenticated: yes
+    force: yes
+  notify: restart docker
+  when: _target_distribution == 'ubuntu' or _target_distribution == 'raspbian' or _target_distribution == 'debian'
+
+- name: Ensure Docker users are added to the 'docker' group
+  user:
+    name: '{{ item }}'
+    group: docker
+    append: yes
+  with_items: '{{ ansible_ssh_user }}'
