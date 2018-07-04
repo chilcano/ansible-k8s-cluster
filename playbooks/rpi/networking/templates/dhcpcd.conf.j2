@@ -37,8 +37,10 @@ require dhcp_server_identifier
 # Generate Stable Private IPv6 Addresses instead of hardware based ones
 slaac private
 
+
 {# ------- Set IP address to eth0 ------- #}
 {% if rpi_nic_static.eth0 %}
+profile static_eth0
 interface eth0
 static ip_address={{ eth0_ip_new }}/24
 ## routers removed to force setup defaul gateway (route -n) wlan0 gw

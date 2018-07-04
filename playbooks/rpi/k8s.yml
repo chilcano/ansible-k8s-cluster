@@ -5,5 +5,5 @@
   gather_facts: True
 
   roles:
-    - role: '../../roles/docker'
-    #- role: '../../roles/kubernetes'
+    #- role: '../../roles/docker'
+    - role: '../../roles/kubernetes'

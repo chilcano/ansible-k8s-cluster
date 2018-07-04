@@ -1,10 +1,13 @@
 ## https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository
-## For Raspbian, installing using the repository is not yet supported. You must instead use the convenience script
+## 'For Raspbian, installing using the repository is not yet supported. You must instead use the convenience script'
 ##
-## this script installs latest version of docker-ce available in edge repo
+## the convenience script:
+##  - apt-get update, apt-get install 'dependencies'
+##  - add gpg key, the apt repo
+##  - and installs latest version of docker-ce available in edge repo
+##
 ## in yum/rpm distro, you have to start the service manually
 ##
-
 
 - name: Remove Docker APT repo
   apt_repository:
@@ -12,6 +15,7 @@
     state: absent
   with_items:
     - 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+    - 'deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable edge'
   ignore_errors: true
 
 - name: Remove previous Docker components

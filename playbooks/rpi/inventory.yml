@@ -10,8 +10,8 @@ kubernetes_cluster:
 #      k8s_role: worker
   vars:
     ansible_ssh_user: pi
-    _k8s_version: 1.10.0
-    #_k8s_version: 1.10.2
+    #_k8s_version: 1.10.0
+    _k8s_version: 1.10.2
     #_k8s_version: 1.10.3
     #_k8s_version: 1.10.4
     _k8s_version_deb_min: "00"
@@ -21,7 +21,9 @@ kubernetes_cluster:
     #_docker_version=18.03.0~ce-0~ubuntu
     #_docker_version=18.03.0~ce-0~debian
     _docker_version: 18.05.0~ce~3-0~raspbian
+    _target_arch: armhf
     _target_distribution: raspbian
+    #_target_arch: amd64
     #_target_distribution: debian
     #_target_distribution: ubuntu
     ##_sdn_cni: flannel

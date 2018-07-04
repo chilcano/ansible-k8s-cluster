@@ -20,11 +20,6 @@
   - ip_vs_sh
   - nf_conntrack_ipv4
 
-
-
-
-
-
 - name: configure ubuntu | Setup 'net.ipv4.ip_forward'
   sysctl:
     name: net.ipv4.ip_forward

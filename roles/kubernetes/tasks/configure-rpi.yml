@@ -1,4 +1,4 @@
-- name: configure rpi | Enabling 'cgroup' options at boot
+- name: Configure RPi | Enabling 'cgroup' options at boot
   copy:
     src: cmdline.txt
     dest: /boot/cmdline.txt
@@ -6,7 +6,7 @@
   tags:
     - boot
 
-- name: configure rpi | Reboot
+- name: Configure RPi | Reboot
   shell: sleep 2 && shutdown -r now "Ansible Reboot for /boot/cmdline.txt Change"
   async: 1
   poll: 0
@@ -16,7 +16,7 @@
     - boot
     - shutdown
 
-- name: configure rpi | Wait for Reboot
+- name: Configure RPi | Wait for Reboot
   local_action: wait_for
   args:
     host: "{{ ansible_ssh_host }}"
@@ -29,7 +29,7 @@
     - boot
     - shutdown
 
-- name: configure rpi | Disable Swap
+- name: Configure RPi | Disable Swap
   shell: >
     dphys-swapfile swapoff &&
     dphys-swapfile uninstall &&
@@ -42,7 +42,7 @@
 #    state: present
 
 
-- name: configure rpi | Setup 'net.ipv4.ip_forward'
+- name: Configure RPi | Setup 'net.ipv4.ip_forward'
   sysctl:
     name: net.ipv4.ip_forward
     value: 1
@@ -50,7 +50,7 @@
     reload: yes
     sysctl_set: yes
 
-#- name: configure rpi | Setup Kubelet systemd service
+#- name: Configure RPi | Setup Kubelet systemd service
 #  service:
 #    name: kubelet
 #    state: started

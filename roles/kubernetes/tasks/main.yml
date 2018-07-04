@@ -1,22 +1,40 @@
-- include_tasks: configure-ubuntu.yml
+- name: Include Configure Ubuntu
+  include_tasks: configure-ubuntu.yml
   when: _target_distribution == 'ubuntu'
 
-- include_tasks: configure-rpi.yml
-  when: _target_distribution == 'rpi'
+- name: Include Configure Raspberry Pi
+  include_tasks: configure-rpi.yml
+  when: _target_distribution == 'raspbian'
 
-- include_tasks: install-k8s.yml
+- name: Include Install K8s
+  include_tasks: install-k8s.yml
 
-- include_tasks: kubeadm-init.yml
+- name: Check if Docker is already present
+  command: which docker
+  failed_when: False
+  changed_when: False
+  register: docker_command_result
+
+- name: Include Pull Docker images (useful in slow internet connections) for Raspbian
+  include_tasks: pull-docker-images.yml
+  when: docker_command_result.rc == 0 and _target_distribution == 'raspbian'
+
+- name: Include K8s Kubeadm Init
+  include_tasks: kubeadm-init.yml
   when: k8s_role == 'master'
 
-- include_tasks: kubectl.yml
+- name: Include K8s Kubectl
+  include_tasks: kubectl.yml
   when: k8s_role == 'master'
 
-- include_tasks: sdn-cni-weavenet.yml
+- name: Include Install SDN CNI WeaveNet
+  include_tasks: sdn-cni-weavenet.yml
   when: k8s_role == 'master' and _sdn_cni == 'weave-net'
 
-- include_tasks: sdn-cni-flannel.yml
+- name: Include Install SDN CNI Flannel
+  include_tasks: sdn-cni-flannel.yml
   when: k8s_role == 'master' and _sdn_cni == 'flannel'
 
-- include_tasks: kubeadm-join.yml
+- name: Include K8s Kubeadm Join
+  include_tasks: kubeadm-join.yml
   #when: k8s_role == 'worker'

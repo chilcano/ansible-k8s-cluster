@@ -34,7 +34,7 @@
       repo: '{{ item }}'
       state: absent
     with_items:
-      - 'deb [arch=armhf] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable edge'
+      - 'deb [arch={{ _target_arch }}] https://download.docker.com/linux/{{ _target_distribution }} {{ ansible_distribution_release }} stable edge'
       - 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
     ignore_errors: true
 

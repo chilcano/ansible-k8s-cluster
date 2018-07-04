@@ -46,14 +46,9 @@ Reference:
 
 
 
-// issues with update_cache=true
-
-
-
 // rpi dhcp check:
-
+```sh
 $ cat /etc/dhcpcd.conf | egrep -v "^\s*(#|$)"
-
 
 $ lsb_release -cs
 stretch
@@ -69,19 +64,30 @@ $ apt-cache madison kubernetes-cni
 // installed packages
 $ dpkg -l | grep kubeadm
 $ dpkg -l | grep docker-ce
+```
 
-
+```sh
 // install
 $ sudo apt-get install docker-ce=18.05.0~ce~3-0~raspbian -yq
 $ sudo apt-get install kubeadm=1.10.3-00 -yq
+```
 
+// check issues with update_cache=true
+???
 
+```sh
+$ sudo systemctl status kubelet
 $ sudo journalctl -u kubelet
+$ sudo journalctl -xeu kubelet
+```
 
+```sh
 pi@raspberrypi:~ $ free -h
               total        used        free      shared  buff/cache   available
 Mem:           927M         71M        136M         17M        719M        777M
 Swap:            0B          0B          0B
+```
+
 
 master:
 -------
@@ -98,7 +104,7 @@ $ sudo kubeadm join --token 8db24b.c91adc2663f36876 192.168.1.32:6443 --discover
 
 test:
 ------------
-$ nmap -p- 127.0.0.1 localhost 192.168.0.111
+$ nmap -p- 127.0.0.1 localhost 20.20.20.21 97.13.149.225
 
 $ sudo journalctl -xeu kubelet
 $ sudo systemctl daemon-reload
@@ -135,8 +141,10 @@ couldn't initialize a Kubernetes cluster
 
 ----
 
-using kubectl
+
+# Using kubectl
 --------------
+
 $ sudo su -
 $ export KUBECONFIG=/etc/kubernetes/admin.conf
 $ kubectl get nodes

@@ -20,8 +20,28 @@
 #    name: docker
 #    state: restarted
 
+- name: Ensure Docker users are added to the 'docker' group
+  user:
+    name: '{{ item }}'
+    group: docker
+    append: yes
+  with_items: '{{ ansible_ssh_user }}'
+
 - name: Ensure Docker systemd service is started and enabled at boot
   service:
     name: docker
     state: started
     enabled: yes
+
+- name: Check if Docker is already present again
+  command: which docker
+  failed_when: False
+  changed_when: False
+  register: docker_command_result
+
+- name: Pull HelloWorld Docker image
+  shell: 'docker pull {{ item.img }}'
+  with_items:
+    - { img: 'armhf/hello-world:latest', distro_arch: 'armhf'}
+    - { img: 'hello-world:latest', distro_arch: 'amd64'}
+  when: docker_command_result.rc == 0 and _target_arch == item.distro_arch
