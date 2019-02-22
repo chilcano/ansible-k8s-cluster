@@ -48,6 +48,10 @@ Change password, resize root partition
 $ sudo raspi-config
 ```
 
+```sh
+///  'dpkg-reconfigure tzdata' if you wish to change it.
+```
+
 Set static IP address to `eth0` and set a proper `hostname`
 ```sh
 
