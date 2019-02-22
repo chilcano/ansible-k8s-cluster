@@ -28,11 +28,6 @@ $ touch /media/roger/boot/ssh
 Insert sd card into your Raspberry Pi, connect it to your network and boot it. 
 
 
-References:
-- https://opensource.com/article/18/3/print-server-raspberry-pi
-- https://circuitdigest.com/microcontroller-projects/raspberry-pi-print-server
-- https://github.com/diadzine/ansible-role-rpi-hp-mfp
-
 
 
 Update RPi
@@ -60,7 +55,36 @@ Set static IP address to `eth0` and set a proper `hostname`
 ## 3. Install and configure the Print Server
 ```sh
 $ sudo apt-get install -y cups
+$ sudo usermod -a -G lpadmin pi
 $ sudo cupsctl --remote-any
 $ sudo /etc/init.d/cups restart
 ``` 
 
+## 4. Setting up SAMBA for the Print Server
+
+```sh
+$ sudo apt-get install -y samba
+$ sudo nano /etc/samba/samba.conf   
+
+// in the [printers] section and change the; guest ok = no to guest ok = yes
+// in  the [print$] printer driver section, change the; read only = yes to read only  = no
+
+$ sudo /etc/init.d/samba restart
+```
+
+## 5. References
+
+
+### HP PhotoSmart C4280 Drivers:
+```sh
+- http://www.openprinting.org/printer/HP/HP-PhotoSmart_C4200
+- hplip drivers: https://developers.hp.com/hp-linux-imaging-and-printing
+- http://www.openprinting.org/printer/HP/HP-Photosmart_C4280
+```
+
+### CUPS and Samba Printing:
+- http://www.penguintutor.com/linux/printing-cups
+- https://pimylifeup.com/raspberry-pi-print-server/
+- https://circuitdigest.com/microcontroller-projects/raspberry-pi-print-server
+- https://github.com/diadzine/ansible-role-rpi-hp-mfp
+```
