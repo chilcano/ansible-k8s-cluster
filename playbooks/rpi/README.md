@@ -2,13 +2,30 @@
 
 ## 1. Preparing the Raspberry Pis
 
-Install Raspbian and enbale SSH:
+Save Raspbian image to SD and enable SSH:
 
 ```sh
-$ touch /Volumes/boot/ssh
+// add Etcher repository:
+$ echo 'deb https://deb.etcher.io stable etcher' | sudo tee /etc/apt/sources.list.d/balena-etcher.list
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+$ sudo apt-get update
+$ sudo apt-get install -y balena-etcher-electron
+
+// open Etcher and save image to sd card in /dev/mmcblk0
+$ balena-etcher-electron
+
+// unplug and plug the sd card to get the path to `boot` partition
+$ df -h
+...
+tmpfs           379M   56K  379M   1% /run/user/1001
+/dev/mmcblk0p1   44M   23M   22M  51% /media/roger/boot
+/dev/mmcblk0p2  1.7G  950M  621M  61% /media/roger/rootfs
+
+// enables ssh
+$ touch /media/roger/boot/ssh
 ```
 
-Now, we have to configure the networking for all Raspberry Pis.
+Insert sd card into your Raspberry Pi and boot. Now, we have to configure the networking for all Raspberry Pis.
 - Setup the Networking (eth0 and wlan0): dhcp, static, set IP, etc.
 - Setup the hostname
 - Update the hosts file
